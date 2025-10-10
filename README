@@ -4,7 +4,7 @@ IIIF Validator
 
 .. image:: https://github.com/github/docs/actions/workflows/test.yml/badge.svg
   :target: https://github.com/IIIF/image-validator/actions
-    
+
 .. image:: https://coveralls.io/repos/github/IIIF/image-validator/badge.svg?branch=main
   :target: https://coveralls.io/github/IIIF/image-validator?branch=main
 
@@ -99,7 +99,12 @@ As an example, if the test server <https://pypi.python.org/pypi/iiif> is install
     easy_install iiif
     iiif_testserver.py
 
-which will set up a server at `<http://localhost:8000/>`_ and write the log of accesses to STDOUT. The one can run validation tests against this with requests like `<http://localhost:8080/info_json?server=localhost:8000&prefix=/2.0_pil_none&identifier=67352ccc-d1b0-11e1-89ae-279075081939.png&version=2.0>`_ which tests the `info.json` response and gives JSON output (pretty formatted here)::
+which will set up a server at `<http://localhost:8000/>`_ and write the log of accesses to STDOUT.
+The one can run validation tests against this with requests like
+`<http://localhost:8080/info_json?server=localhost:8000&prefix=/2.0_pil_none&identifier=67352ccc-d1b0-11e1-89ae-279075081939.png&version=2.0>`_
+which tests the `info.json` response and gives JSON output (pretty formatted here):
+
+.. code-block:: json
 
     {
       "test": "info_json",
@@ -109,7 +114,10 @@ which will set up a server at `<http://localhost:8000/>`_ and write the log of a
       "label": "Check Image Information"
     }
 
-and `<http://localhost:8080/rot_mirror?server=localhost:8000&prefix=/2.0_pil_none&identifier=67352ccc-d1b0-11e1-89ae-279075081939.png&version=2.0>`_ which tests mirroring and will give JSON output (again pretty formatted)::
+and `<http://localhost:8080/rot_mirror?server=localhost:8000&prefix=/2.0_pil_none&identifier=67352ccc-d1b0-11e1-89ae-279075081939.png&version=2.0>`_
+which tests mirroring and will give JSON output (again pretty formatted):
+
+.. code-block:: json
 
     {
       "test": "rot_mirror",
@@ -128,7 +136,9 @@ Validator server under WSGI
 Running with Vagrant
 --------------------
 
-For ease of development and local testing, you can provision a virtual machine using Vagrant. To start Vagrant, ssh in, and run the validator on a site::
+For ease of development and local testing, you can provision a virtual machine using Vagrant. To start Vagrant, ssh in, and run the validator on a site:
+
+.. code-block:: shell
 
     vagrant up
     vagrant ssh
@@ -141,9 +151,9 @@ In addition, the Vagrant configuration runs the validator as a WSGI application 
 Running with Docker
 --------------------
 
-```
+.. code-block:: shell
+
     docker build -t image-validator . && docker run --rm --name image-validator -p 9001:80 image-validator:latest
-```
 
 Then navigate to:
 
@@ -153,7 +163,8 @@ Then navigate to:
 Editing this README
 -------------------
 
-This README is in reStructuredText and not gfm because that is what pypi will render. An editor like `<http://rst.ninjs.org/>`_ is useful for editing/checking interactively.
+This README is in reStructuredText and not gfm because that is what pypi will render.
+An editor like `<https://rsted.info.ucl.ac.be/>`_ is useful for editing/checking interactively.
 
 License
 -------
