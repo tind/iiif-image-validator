@@ -1,5 +1,7 @@
 FROM httpd:2.4.39
 
+LABEL org.opencontainers.image.source=https://github.com/tind/iiif-image-validator
+
 RUN apt-get update
 RUN apt-get -y install python3.4 python3-pip libapache2-mod-wsgi-py3 libxml2-dev libxslt1-dev lib32z1-dev libjpeg-dev libmagic-dev  python-dev vim
 
