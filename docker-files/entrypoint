@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export PATH=/opt/venv/bin:"${PATH:-}"
+export PYTHONPATH=/opt/venv/lib/python3.13/site-packages:"${PYTHONPATH:-}":/usr/lib/python3/dist-packages
+
+exec uwsgi --http :8000 --wsgi-file iiif-validator.py "$@"

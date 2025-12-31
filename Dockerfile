@@ -1,41 +1,67 @@
-FROM httpd:2.4.39
+# Set up base
+FROM debian:13-slim AS base
+
+WORKDIR /app
+
+RUN <<EOF
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get --yes install --no-install-recommends \
+    python3 \
+    python3-venv \
+    python3-dev \
+    python3-legacy-cgi \
+    libxml2 \
+    libxslt1.1 \
+    libjpeg62-turbo \
+    libmagic1
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+EOF
+
+RUN <<EOF
+groupadd -g 150 appuser
+useradd -u 150 -g 150 -s /sbin/nologin appuser
+EOF
+
+# Build stage
+FROM base AS builder
+
+RUN <<EOF
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get --yes install --no-install-recommends \
+build-essential \
+libxml2-dev \
+libxslt1-dev \
+libjpeg-dev \
+libmagic-dev
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+EOF
+
+COPY requirements.txt .
+
+RUN <<EOF
+python3 -m venv /opt/venv
+/opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+chown -R appuser:appuser /opt/venv
+EOF
+
+# Runtime stage
+FROM base
 
 LABEL org.opencontainers.image.source=https://github.com/tind/iiif-image-validator
 
-RUN apt-get update
-RUN apt-get -y install python3.4 python3-pip libapache2-mod-wsgi-py3 libxml2-dev libxslt1-dev lib32z1-dev libjpeg-dev libmagic-dev  python-dev vim
+COPY --from=builder --chown=appuser:appuser /opt/venv /opt/venv
+COPY --chown=appuser:appuser . .
 
-RUN mkdir -p /opt/python/current/app
-COPY . /opt/python/current/app
-WORKDIR /opt/python/current/app
-RUN pip3 install -r requirements.txt
+EXPOSE 8000
 
-RUN ln -s /usr/local/apache2/conf/ /etc/httpd
-RUN ln -s /usr/local/apache2/modules /etc/httpd/modules
-RUN ln -s /usr/lib/apache2/modules/mod_wsgi.so /etc/httpd/modules/mod_wsgi.so
-RUN mkdir /var/run/httpd
-RUN ln -s /var/run/httpd /etc/httpd/run
-RUN mkdir /var/www
-RUN ln -s /usr/local/apache2/htdocs /var/www/html
-COPY html/ /var/www/html/
-RUN sed -i 's/http:\/\/iiif.io//g' /var/www/html/js/*.js
-RUN ln -s /usr/local/apache2/logs /var/log/httpd
-RUN ln -s /var/log/httpd /etc/httpd/logs
-RUN mkdir /etc/httpd/conf.d
+USER appuser
 
-COPY .ebextensions/http/conf/httpd.conf /etc/httpd/httpd.conf
-RUN sed -i 's/User apache/User daemon/g' /etc/httpd/httpd.conf
-RUN sed -i 's/Group apache/Group daemon/g' /etc/httpd/httpd.conf
-COPY .ebextensions/http/conf.d/* /etc/httpd/conf.d
-COPY docker-files/wsgi.conf /etc/httpd/conf.d
+ENTRYPOINT ["/app/docker-files/entrypoint"]
 
-WORKDIR /etc/httpd/
-COPY docker-files/conf.modules.d.tar.gz /tmp/
-RUN tar zxvf /tmp/conf.modules.d.tar.gz
-
-RUN ln -sf /dev/stdout /var/log/httpd/access_log && ln -sf /dev/stderr /var/log/httpd/error_log
-
-#RUN rm /etc/nginx/conf.d/*.conf
-#COPY .ebextensions/nginx/conf.d/*.conf /etc/nginx/conf.d/
-#COPY .ebextensions/nginx/conf.d/elasticbeanstalk /etc/nginx/conf.d/elasticbeanstalk
-EXPOSE 80
+CMD ["--master", "--processes", "4", "--threads", "2"]
